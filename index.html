@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ARIA — Accessible Research Interface for All</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#080b12;--bg2:#0e1320;--bg3:#141c2e;--bg4:#1a2340;--border:rgba(99,179,237,0.1);--border2:rgba(99,179,237,0.25);--text:#e2eaf5;--muted:#6b7fa3;--dim:#2d3a55;--accent:#5badec;--accent2:#38bdf8;--green:#4ade80;--red:#f87171;--amber:#fbbf24;--purple:#a78bfa;--glow:rgba(91,173,236,0.12);--r:10px;--r-lg:18px;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(91,173,236,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(91,173,236,0.04) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+    body::after{content:'';position:fixed;top:-300px;left:50%;transform:translateX(-50%);width:800px;height:600px;background:radial-gradient(ellipse,rgba(91,173,236,0.08) 0%,transparent 70%);pointer-events:none;z-index:0;}
+    .page{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 24px 80px;}
+    .nav{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:48px;}
+    .nav-brand{display:flex;align-items:center;gap:12px;}
+    .nav-logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--accent);letter-spacing:0.08em;}
+    .nav-divider{width:1px;height:20px;background:var(--dim);}
+    .nav-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.08em;}
+    .kbd-hint{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}
+    .kbd{background:var(--bg3);border:1px solid var(--dim);border-radius:4px;padding:2px 6px;font-size:10px;color:var(--muted);}
+    .hero{text-align:center;margin-bottom:48px;animation:fadeUp 0.6s ease both;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .hero-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(91,173,236,0.08);border:1px solid var(--border2);border-radius:999px;padding:6px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:0.06em;margin-bottom:24px;}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(74,222,128,0.4)}50%{opacity:0.6;box-shadow:0 0 0 4px rgba(74,222,128,0)}}
+    .hero h1{font-family:'Syne',sans-serif;font-size:clamp(28px,5vw,48px);font-weight:700;color:var(--text);line-height:1.15;margin-bottom:16px;letter-spacing:-0.02em;}
+    .hero h1 span{color:var(--accent);}
+    .hero p{font-size:15px;color:var(--muted);line-height:1.8;max-width:560px;margin:0 auto 28px;}
+    .modality-row{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;}
+    .m-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid;letter-spacing:0.04em;}
+    .m-pill.click{border-color:rgba(74,222,128,0.3);color:var(--green);background:rgba(74,222,128,0.06);}
+    .m-pill.voice{border-color:rgba(91,173,236,0.3);color:var(--accent);background:rgba(91,173,236,0.06);}
+    .m-pill.gesture{border-color:rgba(167,139,250,0.3);color:var(--purple);background:rgba(167,139,250,0.06);}
+    .m-pill.key{border-color:rgba(251,191,36,0.3);color:var(--amber);background:rgba(251,191,36,0.06);}
+    .m-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+    .progress-section{margin:32px 0;animation:fadeUp 0.6s 0.1s ease both;}
+    .progress-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .progress-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;}
+    .progress-steps{display:flex;gap:6px;}
+    .p-step{width:28px;height:4px;border-radius:999px;background:var(--dim);transition:background 0.4s ease;}
+    .p-step.done{background:var(--green);}
+    .p-step.active{background:var(--accent);}
+    .wcag-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;padding:14px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);}
+    .wcag-item{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}
+    .wcag-check{color:var(--green);font-size:12px;}
+    .status-bar{display:flex;align-items:center;gap:10px;padding:12px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:24px;transition:all 0.3s ease;}
+    .status-bar.info{border-color:rgba(91,173,236,0.3);color:var(--accent);background:rgba(91,173,236,0.05);}
+    .status-bar.success{border-color:rgba(74,222,128,0.3);color:var(--green);background:rgba(74,222,128,0.05);}
+    .status-bar.warn{border-color:rgba(251,191,36,0.3);color:var(--amber);background:rgba(251,191,36,0.05);}
+    .status-icon{font-size:14px;flex-shrink:0;}
+    .q-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px 32px;margin-bottom:16px;transition:border-color 0.3s,box-shadow 0.3s;position:relative;overflow:hidden;animation:fadeUp 0.5s ease both;}
+    .q-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--dim);transition:background 0.3s;}
+    .q-card.answered{border-color:rgba(74,222,128,0.2);}
+    .q-card.answered::before{background:var(--green);}
+    .q-card.active{border-color:var(--border2);box-shadow:0 0 30px var(--glow);}
+    .q-card.active::before{background:var(--accent);}
+    .q-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+    .q-meta{display:flex;align-items:center;gap:10px;}
+    .q-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.12em;}
+    .q-category{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--dim);color:var(--muted);}
+    .q-shortcut{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);display:flex;align-items:center;gap:4px;}
+    .q-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:500;color:var(--text);line-height:1.5;margin-bottom:12px;letter-spacing:-0.01em;}
+    .q-hint{font-size:12px;color:var(--muted);margin-bottom:20px;font-style:italic;line-height:1.6;}
+    .input-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+    @media(max-width:600px){.input-grid{grid-template-columns:1fr 1fr;}}
+    .i-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 8px;border-radius:var(--r);border:1px solid;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:500;background:transparent;transition:all 0.2s ease;letter-spacing:0.02em;position:relative;}
+    .i-btn:hover{transform:translateY(-2px);}
+    .i-btn:active{transform:scale(0.97);}
+    .i-btn .i-icon{font-size:18px;line-height:1;}
+    .i-btn .i-key{position:absolute;top:6px;right:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:1px 4px;color:rgba(255,255,255,0.4);}
+    .btn-yes{border-color:rgba(74,222,128,0.3);color:var(--green);background:rgba(74,222,128,0.06);}
+    .btn-yes:hover{border-color:var(--green);background:rgba(74,222,128,0.15);}
+    .btn-no{border-color:rgba(248,113,113,0.3);color:var(--red);background:rgba(248,113,113,0.06);}
+    .btn-no:hover{border-color:var(--red);background:rgba(248,113,113,0.15);}
+    .btn-voice{border-color:rgba(91,173,236,0.3);color:var(--accent);background:rgba(91,173,236,0.06);}
+    .btn-voice:hover{border-color:var(--accent);background:rgba(91,173,236,0.15);}
+    .btn-voice.listening{border-color:var(--accent);background:rgba(91,173,236,0.2);animation:voiceGlow 1s infinite;}
+    @keyframes voiceGlow{0%,100%{box-shadow:0 0 0 0 rgba(91,173,236,0.4)}50%{box-shadow:0 0 0 6px rgba(91,173,236,0)}}
+    .btn-gesture{border-color:rgba(167,139,250,0.3);color:var(--purple);background:rgba(167,139,250,0.06);}
+    .btn-gesture:hover{border-color:var(--purple);background:rgba(167,139,250,0.15);}
+    .ans-badge{display:none;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--r);font-family:'IBM Plex Mono',monospace;font-size:12px;}
+    .ans-badge.show{display:flex;}
+    .ans-badge.yes{background:rgba(74,222,128,0.08);color:var(--green);border:1px solid rgba(74,222,128,0.2);}
+    .ans-badge.no{background:rgba(248,113,113,0.08);color:var(--red);border:1px solid rgba(248,113,113,0.2);}
+    .cam-panel{display:none;background:var(--bg3);border:1px solid rgba(167,139,250,0.2);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;}
+    .cam-panel.show{display:block;}
+    .cam-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+    .cam-title{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--purple);letter-spacing:0.08em;}
+    .cam-close{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);cursor:pointer;}
+    #webcam{width:100%;max-width:320px;border-radius:var(--r);border:1px solid rgba(167,139,250,0.3);display:block;margin:0 auto;transform:scaleX(-1);}
+    .cam-status{text-align:center;margin-top:12px;font-size:22px;min-height:36px;}
+    .cam-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--purple);text-align:center;margin-top:4px;}
+    .cam-progress{height:3px;background:var(--bg4);border-radius:999px;margin:10px auto 0;max-width:320px;overflow:hidden;}
+    .cam-fill{height:100%;background:var(--purple);width:0%;transition:width 0.05s linear;border-radius:999px;}
+    .analytics{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px 32px;margin-bottom:16px;display:none;animation:fadeUp 0.4s ease both;}
+    .analytics.show{display:block;}
+    .analytics-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+    .analytics-title{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);letter-spacing:0.1em;}
+    .analytics-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+    @media(max-width:600px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+    .stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center;}
+    .stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--accent);line-height:1;margin-bottom:6px;}
+    .stat-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.06em;}
+    .breakdown-title{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.1em;margin-bottom:12px;}
+    .breakdown-bars{display:flex;flex-direction:column;gap:10px;}
+    .b-row{display:flex;align-items:center;gap:12px;}
+    .b-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);min-width:60px;}
+    .b-track{flex:1;height:6px;background:var(--bg4);border-radius:999px;overflow:hidden;}
+    .b-fill{height:100%;border-radius:999px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);}
+    .b-count{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);min-width:20px;text-align:right;}
+    .resp-table{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px;}
+    .resp-table th{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.08em;text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);}
+    .resp-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);font-size:13px;}
+    .resp-table tr:last-child td{border-bottom:none;}
+    .tag-yes{color:var(--green);font-weight:500;}
+    .tag-no{color:var(--red);font-weight:500;}
+    .method-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid var(--dim);color:var(--muted);}
+    .submit-wrap{margin:8px 0 24px;}
+    .submit-btn{width:100%;padding:18px;background:var(--accent);color:var(--bg);border:none;border-radius:var(--r);font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:0.04em;transition:all 0.2s ease;}
+    .submit-btn:hover{opacity:0.88;transform:translateY(-1px);box-shadow:0 8px 32px rgba(91,173,236,0.3);}
+    .footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding-top:24px;border-top:1px solid var(--border);margin-top:32px;}
+    .footer-left{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);}
+    .footer-right{display:flex;gap:8px;flex-wrap:wrap;}
+    .tech-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);border:1px solid var(--dim);padding:3px 10px;border-radius:999px;}
+  </style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav">
+    <div class="nav-brand">
+      <span class="nav-logo">ARIA</span>
+      <div class="nav-divider"></div>
+      <span class="nav-tag">Accessible Research Interface · v3.0 · HCI Lab</span>
+    </div>
+    <div class="nav-right">
+      <div class="kbd-hint">
+        <span class="kbd">Y</span> Yes <span class="kbd">N</span> No <span class="kbd">V</span> Voice <span class="kbd">G</span> Gesture
+      </div>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-chip"><span class="live-dot"></span>MULTIMODAL INPUT ACTIVE · WCAG 2.1 AA COMPLIANT</div>
+    <h1>Interact Without<br><span>Boundaries</span></h1>
+    <p>ARIA is an HCI research prototype enabling form completion through four simultaneous input modalities — designed for users with diverse cognitive, motor, and sensory accessibility needs.</p>
+    <div class="modality-row">
+      <div class="m-pill click"><span class="m-dot"></span>Direct Click</div>
+      <div class="m-pill voice"><span class="m-dot"></span>Voice Recognition</div>
+      <div class="m-pill gesture"><span class="m-dot"></span>Hand Gesture</div>
+      <div class="m-pill key"><span class="m-dot"></span>Keyboard Shortcuts</div>
+    </div>
+  </div>
+
+  <div class="wcag-strip">
+    <div class="wcag-item"><span class="wcag-check">✓</span>Keyboard Navigable</div>
+    <div class="wcag-item"><span class="wcag-check">✓</span>Screen Reader Ready</div>
+    <div class="wcag-item"><span class="wcag-check">✓</span>Voice Input Supported</div>
+    <div class="wcag-item"><span class="wcag-check">✓</span>Gesture Control Active</div>
+    <div class="wcag-item"><span class="wcag-check">✓</span>High Contrast Mode</div>
+    <div class="wcag-item"><span class="wcag-check">✓</span>Motor Accessibility</div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-meta">
+      <span class="progress-label">FORM COMPLETION PROGRESS</span>
+      <span class="progress-label" id="prog-text">0 / 6 questions answered</span>
+    </div>
+    <div class="progress-steps">
+      <div class="p-step active" id="ps1"></div><div class="p-step" id="ps2"></div>
+      <div class="p-step" id="ps3"></div><div class="p-step" id="ps4"></div>
+      <div class="p-step" id="ps5"></div><div class="p-step" id="ps6"></div>
+    </div>
+  </div>
+
+  <div class="status-bar" id="status-bar">
+    <span class="status-icon">◎</span>
+    <span id="status-text">System ready — use any modality to answer each question.</span>
+  </div>
+
+  <div class="cam-panel" id="cam-panel">
+    <div class="cam-header">
+      <span class="cam-title">// GESTURE INPUT — HOLD TO CONFIRM</span>
+      <span class="cam-close" onclick="closeCamera()">✕ Close</span>
+    </div>
+    <video id="webcam" autoplay playsinline></video>
+    <div class="cam-status" id="cam-emoji">✋</div>
+    <div class="cam-label" id="cam-label">Show thumb UP for Yes · thumb DOWN for No</div>
+    <div class="cam-progress"><div class="cam-fill" id="cam-fill"></div></div>
+    <canvas id="canvas" style="display:none;"></canvas>
+  </div>
+
+  <!-- Questions -->
+  <div class="q-card active" id="card-1">
+    <div class="q-header"><div class="q-meta"><span class="q-num">QUERY_01</span><span class="q-category">Device Access</span></div><span class="q-shortcut"><span class="kbd">Y</span>/<span class="kbd">N</span></span></div>
+    <p class="q-text">Do you have access to a personal laptop or computer for the full duration of the internship?</p>
+    <p class="q-hint">This helps assess remote work capability and resource availability during the research period.</p>
+    <div class="input-grid">
+      <button class="i-btn btn-yes" onclick="answer(1,'Yes','click')"><span class="i-key">Y</span><span class="i-icon">👍</span>Affirm</button>
+      <button class="i-btn btn-no" onclick="answer(1,'No','click')"><span class="i-key">N</span><span class="i-icon">👎</span>Deny</button>
+      <button class="i-btn btn-voice" id="vbtn-1" onclick="startVoice(1)"><span class="i-key">V</span><span class="i-icon">🎙</span>Speak</button>
+      <button class="i-btn btn-gesture" onclick="startGesture(1)"><span class="i-key">G</span><span class="i-icon">✋</span>Gesture</button>
+    </div>
+    <div class="ans-badge" id="ans-1"></div>
+  </div>
+
+  <div class="q-card" id="card-2">
+    <div class="q-header"><div class="q-meta"><span class="q-num">QUERY_02</span><span class="q-category">Technical Background</span></div><span class="q-shortcut"><span class="kbd">Y</span>/<span class="kbd">N</span></span></div>
+    <p class="q-text">Do you have prior hands-on experience with Python programming?</p>
+    <p class="q-hint">Python is the primary language used in our HCI research tools and data analysis pipelines.</p>
+    <div class="input-grid">
+      <button class="i-btn btn-yes" onclick="answer(2,'Yes','click')"><span class="i-key">Y</span><span class="i-icon">👍</span>Affirm</button>
+      <button class="i-btn btn-no" onclick="answer(2,'No','click')"><span class="i-key">N</span><span class="i-icon">👎</span>Deny</button>
+      <button class="i-btn btn-voice" id="vbtn-2" onclick="startVoice(2)"><span class="i-key">V</span><span class="i-icon">🎙</span>Speak</button>
+      <button class="i-btn btn-gesture" onclick="startGesture(2)"><span class="i-key">G</span><span class="i-icon">✋</span>Gesture</button>
+    </div>
+    <div class="ans-badge" id="ans-2"></div>
+  </div>
+
+  <div class="q-card" id="card-3">
+    <div class="q-header"><div class="q-meta"><span class="q-num">QUERY_03</span><span class="q-category">Availability</span></div><span class="q-shortcut"><span class="kbd">Y</span>/<span class="kbd">N</span></span></div>
+    <p class="q-text">Are you available on a full-time basis for the complete duration of the internship period?</p>
+    <p class="q-hint">The internship requires consistent availability — typically 6 to 8 weeks during summer.</p>
+    <div class="input-grid">
+      <button class="i-btn btn-yes" onclick="answer(3,'Yes','click')"><span class="i-key">Y</span><span class="i-icon">👍</span>Affirm</button>
+      <button class="i-btn btn-no" onclick="answer(3,'No','click')"><span class="i-key">N</span><span class="i-icon">👎</span>Deny</button>
+      <button class="i-btn btn-voice" id="vbtn-3" onclick="startVoice(3)"><span class="i-key">V</span><span class="i-icon">🎙</span>Speak</button>
+      <button class="i-btn btn-gesture" onclick="startGesture(3)"><span class="i-key">G</span><span class="i-icon">✋</span>Gesture</button>
+    </div>
+    <div class="ans-badge" id="ans-3"></div>
+  </div>
+
+  <div class="q-card" id="card-4">
+    <div class="q-header"><div class="q-meta"><span class="q-num">QUERY_04</span><span class="q-category">Research Interest</span></div><span class="q-shortcut"><span class="kbd">Y</span>/<span class="kbd">N</span></span></div>
+    <p class="q-text">Have you previously studied or explored topics in Human-Computer Interaction or UX Design?</p>
+    <p class="q-hint">Prior exposure to HCI concepts — even informally through self-study — is considered valuable.</p>
+    <div class="input-grid">
+      <button class="i-btn btn-yes" onclick="answer(4,'Yes','click')"><span class="i-key">Y</span><span class="i-icon">👍</span>Affirm</button>
+      <button class="i-btn btn-no" onclick="answer(4,'No','click')"><span class="i-key">N</span><span class="i-icon">👎</span>Deny</button>
+      <button class="i-btn btn-voice" id="vbtn-4" onclick="startVoice(4)"><span class="i-key">V</span><span class="i-icon">🎙</span>Speak</button>
+      <button class="i-btn btn-gesture" onclick="startGesture(4)"><span class="i-key">G</span><span class="i-icon">✋</span>Gesture</button>
+    </div>
+    <div class="ans-badge" id="ans-4"></div>
+  </div>
+
+  <div class="q-card" id="card-5">
+    <div class="q-header"><div class="q-meta"><span class="q-num">QUERY_05</span><span class="q-category">Collaboration</span></div><span class="q-shortcut"><span class="kbd">Y</span>/<span class="kbd">N</span></span></div>
+    <p class="q-text">Are you comfortable working in a collaborative research environment with faculty and peers?</p>
+    <p class="q-hint">Research internships involve regular check-ins, peer reviews, and collaborative problem solving.</p>
+    <div class="input-grid">
+      <button class="i-btn btn-yes" onclick="answer(5,'Yes','click')"><span class="i-key">Y</span><span class="i-icon">👍</span>Affirm</button>
+      <button class="i-btn btn-no" onclick="answer(5,'No','click')"><span class="i-key">N</span><span class="i-icon">👎</span>Deny</button>
+      <button class="i-btn btn-voice" id="vbtn-5" onclick="startVoice(5)"><span class="i-key">V</span><span class="i-icon">🎙</span>Speak</button>
+      <button class="i-btn btn-gesture" onclick="startGesture(5)"><span class="i-key">G</span><span class="i-icon">✋</span>Gesture</button>
+    </div>
+    <div class="ans-badge" id="ans-5"></div>
+  </div>
+
+  <div class="q-card" id="card-6">
+    <div class="q-header"><div class="q-meta"><span class="q-num">QUERY_06</span><span class="q-category">Accessibility Awareness</span></div><span class="q-shortcut"><span class="kbd">Y</span>/<span class="kbd">N</span></span></div>
+    <p class="q-text">Do you believe digital interfaces should be designed to be accessible to all users, regardless of ability?</p>
+    <p class="q-hint">This question assesses alignment with our core research values around inclusive and universal design.</p>
+    <div class="input-grid">
+      <button class="i-btn btn-yes" onclick="answer(6,'Yes','click')"><span class="i-key">Y</span><span class="i-icon">👍</span>Affirm</button>
+      <button class="i-btn btn-no" onclick="answer(6,'No','click')"><span class="i-key">N</span><span class="i-icon">👎</span>Deny</button>
+      <button class="i-btn btn-voice" id="vbtn-6" onclick="startVoice(6)"><span class="i-key">V</span><span class="i-icon">🎙</span>Speak</button>
+      <button class="i-btn btn-gesture" onclick="startGesture(6)"><span class="i-key">G</span><span class="i-icon">✋</span>Gesture</button>
+    </div>
+    <div class="ans-badge" id="ans-6"></div>
+  </div>
+
+  <div class="submit-wrap">
+    <button class="submit-btn" onclick="submitForm()">Finalise &amp; Submit All Responses →</button>
+  </div>
+
+  <div class="analytics" id="analytics">
+    <div class="analytics-header">
+      <span class="analytics-title">// RESPONSE ANALYTICS DASHBOARD</span>
+      <span class="analytics-sub">Session summary · 6 queries</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="s-total">0</div><div class="stat-label">TOTAL RESPONSES</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-yes" style="color:var(--green)">0</div><div class="stat-label">AFFIRMATIVE</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-no" style="color:var(--red)">0</div><div class="stat-label">NEGATIVE</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-time" style="color:var(--amber)">0s</div><div class="stat-label">COMPLETION TIME</div></div>
+    </div>
+    <div class="breakdown-title">INPUT MODALITY BREAKDOWN</div>
+    <div class="breakdown-bars">
+      <div class="b-row"><span class="b-label" style="color:var(--green)">Click</span><div class="b-track"><div class="b-fill" id="bar-click" style="background:var(--green);width:0%"></div></div><span class="b-count" id="cnt-click">0</span></div>
+      <div class="b-row"><span class="b-label" style="color:var(--accent)">Voice</span><div class="b-track"><div class="b-fill" id="bar-voice" style="background:var(--accent);width:0%"></div></div><span class="b-count" id="cnt-voice">0</span></div>
+      <div class="b-row"><span class="b-label" style="color:var(--purple)">Gesture</span><div class="b-track"><div class="b-fill" id="bar-gesture" style="background:var(--purple);width:0%"></div></div><span class="b-count" id="cnt-gesture">0</span></div>
+      <div class="b-row"><span class="b-label" style="color:var(--amber)">Keyboard</span><div class="b-track"><div class="b-fill" id="bar-key" style="background:var(--amber);width:0%"></div></div><span class="b-count" id="cnt-key">0</span></div>
+    </div>
+    <table class="resp-table">
+      <thead><tr><th>QUERY</th><th>CATEGORY</th><th>RESPONSE</th><th>MODALITY</th></tr></thead>
+      <tbody id="resp-body"></tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">ARIA · HCI Research Prototype · v3.0 · 2026 · WCAG 2.1 AA</div>
+    <div class="footer-right">
+      <span class="tech-tag">Web Speech API</span>
+      <span class="tech-tag">MediaPipe Hands</span>
+      <span class="tech-tag">Keyboard Nav</span>
+      <span class="tech-tag">WCAG 2.1</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script>
+const answers={},methods={},modCount={click:0,voice:0,gesture:0,keyboard:0};
+let activeQ=null,mpHands=null,mpCam=null,gInterval=null,gProgress=0,startTime=Date.now();
+const HOLD=1200,CATS=['','Device Access','Technical Background','Availability','Research Interest','Collaboration','Accessibility Awareness'];
+
+document.addEventListener('keydown',e=>{
+  const q=getActiveQ();if(!q)return;
+  if(e.key==='y'||e.key==='Y'){e.preventDefault();answer(q,'Yes','keyboard');}
+  if(e.key==='n'||e.key==='N'){e.preventDefault();answer(q,'No','keyboard');}
+  if(e.key==='v'||e.key==='V'){e.preventDefault();startVoice(q);}
+  if(e.key==='g'||e.key==='G'){e.preventDefault();startGesture(q);}
+});
+
+function getActiveQ(){for(let i=1;i<=6;i++){if(!answers[i])return i;}return null;}
+
+function answer(q,val,method){
+  answers[q]=val;methods[q]=method;modCount[method]=(modCount[method]||0)+1;
+  const badge=document.getElementById('ans-'+q),card=document.getElementById('card-'+q),isYes=val==='Yes';
+  const mi={click:'⬡ click',voice:'◎ voice',gesture:'⌖ gesture',keyboard:'⌨ keyboard'};
+  badge.className='ans-badge show '+(isYes?'yes':'no');
+  badge.innerHTML=(isYes?'✓':'✗')+'&nbsp;&nbsp;'+val+'&nbsp;&nbsp;<span style="opacity:0.5;font-size:10px;">via '+(mi[method]||method)+'</span>';
+  card.classList.remove('active');card.classList.add('answered');
+  if(q<6)document.getElementById('card-'+(q+1)).classList.add('active');
+  updateProgress();setStatus('Query '+q+' answered: '+val+' — via '+method,'success');
+}
+
+function updateProgress(){
+  const done=Object.keys(answers).length;
+  document.getElementById('prog-text').textContent=done+' / 6 questions answered';
+  for(let i=1;i<=6;i++){
+    const el=document.getElementById('ps'+i);
+    if(answers[i])el.className='p-step done';
+    else if(i===done+1)el.className='p-step active';
+    else el.className='p-step';
+  }
+}
+
+function setStatus(msg,type=''){
+  document.getElementById('status-bar').className='status-bar'+(type?' '+type:'');
+  document.getElementById('status-text').textContent=msg;
+}
+
+function startVoice(q){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){setStatus('Voice requires Google Chrome.','warn');return;}
+  const btn=document.getElementById('vbtn-'+q);
+  btn.classList.add('listening');btn.querySelector('.i-icon').textContent='⏺';
+  const rec=new SR();rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=3;
+  setStatus('Listening for query '+q+' — say "yes" or "no"...','info');
+  rec.onresult=e=>{
+    btn.classList.remove('listening');btn.querySelector('.i-icon').textContent='🎙';
+    const said=Array.from(e.results[0]).map(r=>r.transcript.toLowerCase()).join(' ');
+    if(/\b(yes|yeah|yep|yup|correct|sure|affirm)\b/.test(said))answer(q,'Yes','voice');
+    else if(/\b(no|nope|nah|negative|deny)\b/.test(said))answer(q,'No','voice');
+    else setStatus('Heard: "'+e.results[0][0].transcript+'" — please say yes or no.','warn');
+  };
+  rec.onerror=()=>{btn.classList.remove('listening');btn.querySelector('.i-icon').textContent='🎙';setStatus('Mic error — allow microphone access.','warn');};
+  rec.onend=()=>{btn.classList.remove('listening');btn.querySelector('.i-icon').textContent='🎙';};
+  rec.start();
+}
+
+function startGesture(q){activeQ=q;document.getElementById('cam-panel').classList.add('show');setStatus('Gesture mode — hold thumb UP (Yes) or DOWN (No) for Q'+q,'info');initMP();}
+function closeCamera(){document.getElementById('cam-panel').classList.remove('show');if(mpCam){mpCam.stop();mpCam=null;}mpHands=null;resetGP();}
+
+function initMP(){
+  if(mpHands)return;
+  mpHands=new Hands({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/hands/'+f});
+  mpHands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:0.75,minTrackingConfidence:0.75});
+  mpHands.onResults(onHand);
+  const vid=document.getElementById('webcam');
+  mpCam=new Camera(vid,{onFrame:async()=>{await mpHands.send({image:vid});},width:320,height:240});
+  mpCam.start();
+}
+
+function detectThumb(lm){
+  const handH=Math.abs(lm[0].y-lm[5].y)||0.1,diff=lm[2].y-lm[4].y;
+  const fd=[lm[8].y>lm[6].y,lm[12].y>lm[10].y,lm[16].y>lm[14].y,lm[20].y>lm[18].y].every(Boolean);
+  if(fd&&diff>handH*0.6)return'yes';if(fd&&diff<-handH*0.6)return'no';return null;
+}
+
+function onHand(res){
+  if(!res.multiHandLandmarks||!res.multiHandLandmarks.length){resetGP();document.getElementById('cam-emoji').textContent='✋';document.getElementById('cam-label').textContent='Show thumb UP for Yes · thumb DOWN for No';return;}
+  const g=detectThumb(res.multiHandLandmarks[0]);
+  if(g){
+    document.getElementById('cam-emoji').textContent=g==='yes'?'👍':'👎';
+    document.getElementById('cam-label').textContent=g==='yes'?'Thumbs Up — hold to confirm YES':'Thumbs Down — hold to confirm NO';
+    if(!gInterval){gProgress=0;gInterval=setInterval(()=>{gProgress+=100/(HOLD/50);document.getElementById('cam-fill').style.width=Math.min(gProgress,100)+'%';if(gProgress>=100){clearInterval(gInterval);gInterval=null;confirmGesture(g);}},50);}
+  }else{resetGP();document.getElementById('cam-emoji').textContent='✋';document.getElementById('cam-label').textContent='Show thumb UP for Yes · thumb DOWN for No';}
+}
+
+function resetGP(){clearInterval(gInterval);gInterval=null;gProgress=0;document.getElementById('cam-fill').style.width='0%';}
+function confirmGesture(g){answer(activeQ,g==='yes'?'Yes':'No','gesture');closeCamera();}
+
+function submitForm(){
+  const missing=[1,2,3,4,5,6].filter(q=>!answers[q]);
+  if(missing.length){setStatus('Please answer queries: '+missing.join(', ')+' before submitting.','warn');return;}
+  const elapsed=Math.round((Date.now()-startTime)/1000);
+  const yc=Object.values(answers).filter(v=>v==='Yes').length;
+  const nc=Object.values(answers).filter(v=>v==='No').length;
+  document.getElementById('s-total').textContent=6;
+  document.getElementById('s-yes').textContent=yc;
+  document.getElementById('s-no').textContent=nc;
+  document.getElementById('s-time').textContent=elapsed+'s';
+  ['click','voice','gesture','keyboard'].forEach(m=>{
+    const c=modCount[m]||0,pct=Math.round((c/6)*100);
+    document.getElementById('bar-'+m).style.width=pct+'%';
+    document.getElementById('cnt-'+m).textContent=c;
+  });
+  const icons={click:'⬡',voice:'◎',gesture:'⌖',keyboard:'⌨'};
+  document.getElementById('resp-body').innerHTML=[1,2,3,4,5,6].map(q=>`<tr><td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)">QUERY_0${q}</td><td style="color:var(--muted);font-size:12px">${CATS[q]}</td><td class="${answers[q]==='Yes'?'tag-yes':'tag-no'}">${answers[q]==='Yes'?'✓ Yes':'✗ No'}</td><td><span class="method-tag">${icons[methods[q]]||''} ${methods[q]}</span></td></tr>`).join('');
+  document.getElementById('analytics').classList.add('show');
+  setStatus('All 6 responses recorded. Analytics dashboard updated.','success');
+  setTimeout(()=>document.getElementById('analytics').scrollIntoView({behavior:'smooth',block:'center'}),100);
+}
+</script>
+</body>
+</html>`
